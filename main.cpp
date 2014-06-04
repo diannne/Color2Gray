@@ -17,12 +17,16 @@ using namespace imageManipulator;
 THis main is the example of how to convert a normal BMP image to grayscale Charly. As you see only three methods are called :D
 
 */
-int main()
+int main( int argc, char *argv[])
 {
+    if ( argc != 2 )
+    {
+        std::cout<<"Please give me a file to use" std::endl;
+	return -1 ;
+    }
     ImageManipulator* imageManipulator = new ImageManipulator();
-    imageManipulator->openImage("/home/cnavarropalos/example.bmp");
+    imageManipulator->openImage(argv[1]);
     imageManipulator->convertToGrayscale();
-    imageManipulator->saveImage("/home/cnavarropalos/grayscale.bmp");
-    imageManipulator->applySobelsFilter();
+    imageManipulator->saveImage(argv[1]);
     return 0;
 }
