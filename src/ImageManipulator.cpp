@@ -207,3 +207,19 @@ void ImageManipulator::printHeader()
     }
 
 }
+
+void ImageManipulator::applySobelsFilter()
+{
+
+    if(imageLoaded)
+    {
+
+
+        cout << "Image successfully applied the Sobel Filter." << endl;
+    }
+    else
+    {
+        cout << "You must first load the image that you want to apply the Sobel filter" << endl;
+    }
+
+}

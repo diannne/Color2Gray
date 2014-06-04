@@ -10,6 +10,8 @@ Navarro Palos Carlos Eduardo
 */
 #include "Sobel.h"
 
+using namespace sobel;
+
 Sobel::Sobel()
 {
 
@@ -18,4 +20,8 @@ Sobel::Sobel()
 Sobel::~Sobel()
 {
 
+}
+
+void Sobel::applySobelFilter(const int** filter,  BYTE* imageData)
+{
 }

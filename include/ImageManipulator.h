@@ -17,19 +17,13 @@ Navarro Palos Carlos Eduardo
 #include <stdio.h>
 #include <math.h>
 
+#include "Definitions.h"
+
 #define BITS_PER_PIXEL 24
 #define RGB2GRAY(r,g,b) (BYTE)( (b)*0.3 + (g)*0.59 + (r)*0.11 )
 
 namespace imageManipulator
 {
-
-
-
-typedef unsigned char BYTE;
-typedef unsigned short WORD;
-typedef unsigned int DWORD;
-
-
 
 /*
 This struct contains the all the data from the header of a BMP Image.
@@ -97,16 +91,20 @@ public:
     */
     void convertToGrayscale();
     /*
-    THis method prints the header INFO
+    This method prints the header INFO
     */
     void printHeader();
+    /*
+    This method applies sobel filter to the image data
+    */
+    void applySobelsFilter();
 
 protected:
 private:
 
     FILE* imageFile; //The file where you load the image
     BMPHeader header; //The header of the BMP
-    BYTE* imageData; //The image as a binary
+        BYTE* imageData; //The image as a binary
     bool imageLoaded; //This flag allows you to use all the methods of this class.
 
     /*
