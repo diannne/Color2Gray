@@ -21,7 +21,7 @@ int main( int argc, char *argv[])
 {
     if ( argc != 2 )
     {
-        std::cout<<"Please give me a file to use" std::endl;
+        std::cout<<"Please give me a file to use" <<std::endl;
 	return -1 ;
     }
     ImageManipulator* imageManipulator = new ImageManipulator();
