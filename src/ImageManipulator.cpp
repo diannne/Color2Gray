@@ -11,6 +11,7 @@ Navarro Palos Carlos Eduardo
 #include "ImageManipulator.h"
 
 using namespace imageManipulator;
+using namespace sobel;
 using namespace std;
 
 ImageManipulator::ImageManipulator()
@@ -213,6 +214,8 @@ void ImageManipulator::applySobelsFilter()
 
     if(imageLoaded)
     {
+        Sobel* sobelFilter = new Sobel();
+        sobelFilter->applySobelFilter(convolutionMatrix, imageData);
 
 
         cout << "Image successfully applied the Sobel Filter." << endl;

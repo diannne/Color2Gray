@@ -18,6 +18,7 @@ Navarro Palos Carlos Eduardo
 #include <math.h>
 
 #include "Definitions.h"
+#include "Sobel.h"
 
 #define BITS_PER_PIXEL 24
 #define RGB2GRAY(r,g,b) (BYTE)( (b)*0.3 + (g)*0.59 + (r)*0.11 )

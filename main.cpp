@@ -23,5 +23,6 @@ int main()
     imageManipulator->openImage("/home/cnavarropalos/example.bmp");
     imageManipulator->convertToGrayscale();
     imageManipulator->saveImage("/home/cnavarropalos/grayscale.bmp");
+    imageManipulator->applySobelsFilter();
     return 0;
 }
