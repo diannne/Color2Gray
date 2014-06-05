@@ -19,16 +19,19 @@ using namespace std;
 THis main is the example of how to convert a normal BMP image to grayscale Charly. As you see only three methods are called :D
 
 */
-int main()
+int main( int argc, char *argv[])
 {
-    int numberOfHosts = 4;
-    int imageHeight;
-    int imageWidht;
+    if ( argc != 2 )
+    {
+        std::cout << "Please give me a file to use" << std::endl;
+        return -1 ;
+    }
+
     BYTE* section1;
     BYTE* section2;
     BYTE* section3;
     ImageManipulator* imageManipulator = new ImageManipulator();
-    imageManipulator->openImage("/home/cnavarropalos/example.bmp");
+    imageManipulator->openImage(argv[1]);
 
     //imageHeight = imageManipulator->header.height; //465
     //imageWidht = imageManipulator->header.widht; //620
@@ -41,5 +44,6 @@ int main()
     section3 = imageManipulator->applySobelsFilter(201, 465, 201, 620);
 
     imageManipulator->saveImage("/home/cnavarropalos/sobel.bmp");
+
     return 0;
 }
