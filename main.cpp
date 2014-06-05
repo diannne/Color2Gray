@@ -9,6 +9,7 @@ Navarro Palos Carlos Eduardo
 
 */
 #include <iostream>
+#include <string>
 #include "ImageManipulator.h"
 #include "Definitions.h"
 
@@ -27,23 +28,29 @@ int main( int argc, char *argv[])
         return -1 ;
     }
 
+    std::string fileName(argv[1]);
+    std::string grayscaleFileName = fileName;
+    std::string sobelFileName = fileName;
+    grayscaleFileName.insert(grayscaleFileName.size() - 4, "_grayscale");
+    sobelFileName.insert(sobelFileName.size() - 4, "_sobel");
+
     BYTE* section1;
     BYTE* section2;
     BYTE* section3;
-    ImageManipulator* imageManipulator = new ImageManipulator();
-    imageManipulator->openImage(argv[1]);
 
-    //imageHeight = imageManipulator->header.height; //465
-    //imageWidht = imageManipulator->header.widht; //620
+    ImageManipulator* imageManipulator = new ImageManipulator();
+    imageManipulator->openImage(fileName.c_str());
+
 
     imageManipulator->convertToGrayscale();
-    imageManipulator->saveImage("/home/cnavarropalos/grayscale.bmp");
+
+    imageManipulator->saveImage(grayscaleFileName.c_str());
 
     section1 = imageManipulator->applySobelsFilter(0, 100, 0, 100);
     section2 = imageManipulator->applySobelsFilter(101, 200, 101, 200);
     section3 = imageManipulator->applySobelsFilter(201, 465, 201, 620);
 
-    imageManipulator->saveImage("/home/cnavarropalos/sobel.bmp");
+    imageManipulator->saveImage(sobelFileName.c_str());
 
     return 0;
 }
