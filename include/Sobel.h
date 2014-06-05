@@ -32,7 +32,6 @@ public:
 //protected:
 //private:
     imageManipulator::ImageManipulator originalImage;
-    imageManipulator::ImageManipulator sobelFilter;
     imageManipulator::ImageManipulator edgeDetectedImage;
 
 
