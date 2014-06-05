@@ -254,9 +254,9 @@ void ImageManipulator::printDataImage(const bool isTest, const int maxTestSize)
     }
 }
 
-BYTE* ImageManipulator::applySobelsFilter(const int initialX, const int initialY, const int finalX, const int finalY)
+ImageManipulator ImageManipulator::applySobelsFilter(const int initialX, const int initialY, const int finalX, const int finalY)
 {
-    BYTE* imageSection = NULL;
+    ImageManipulator imageSection;
 
     if(imageLoaded)
     {
@@ -264,7 +264,7 @@ BYTE* ImageManipulator::applySobelsFilter(const int initialX, const int initialY
         {
             Sobel sobelFilter(*this);
             sobelFilter.applySobelFilter(initialX, initialY, finalX, finalY);
-            imageSection = sobelFilter.edgeDetectedImage.imageData;
+            imageSection = sobelFilter.edgeDetectedImage;
 
             cout << "Sobel filter was succesfully applied to the sector of the image: From (" <<  initialX << ", " << finalX << ")" << " To " <<  initialY << ", " << finalY << ")"<< endl;
 

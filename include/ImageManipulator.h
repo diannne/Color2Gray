@@ -98,7 +98,7 @@ public:
     This method applies sobel filter to the image data in the given sector of the image.
     This is usefull for distributing the job.
     */
-    BYTE* applySobelsFilter(const int initialX, const int initialY, const int finalX, const int finalY);
+    ImageManipulator applySobelsFilter(const int initialX, const int initialY, const int finalX, const int finalY);
     /*
     Prints the image matrix following this form
     (r,g,b)(r,g,b)...(r,g,b)
