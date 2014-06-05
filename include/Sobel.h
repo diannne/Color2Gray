@@ -13,6 +13,7 @@ Navarro Palos Carlos Eduardo
 
 #include <iostream>
 #include "Definitions.h"
+#include "ImageManipulator.h"
 
 namespace sobel
 {
@@ -20,15 +21,25 @@ namespace sobel
 class Sobel
 {
 public:
-    Sobel();
+    Sobel(imageManipulator::ImageManipulator originalImage);
     ~Sobel();
-
     /*
-    This methods apply the sobel filter given in the filter matrix to the imageData
+    This method applies the sobel filter in the sector of the image given in the parameters.
     */
-    void applySobelFilter(const int filter[CONVOLUTION_MATRIX_ROWS][CONVOLUTION_MATRIX_COLUMNS],  const BYTE* imageData);
-protected:
-private:
+    void applySobelFilter(const int initialX, const int initialY, const int finalX, const int finalY);
+
+
+//protected:
+//private:
+    imageManipulator::ImageManipulator originalImage;
+    imageManipulator::ImageManipulator sobelFilter;
+    imageManipulator::ImageManipulator edgeDetectedImage;
+
+
+
+
+
+
 
 };
 

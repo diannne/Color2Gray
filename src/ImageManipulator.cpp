@@ -9,6 +9,7 @@ Navarro Palos Carlos Eduardo
 
 */
 #include "ImageManipulator.h"
+#include "Sobel.h"
 
 using namespace imageManipulator;
 using namespace sobel;
@@ -18,6 +19,7 @@ ImageManipulator::ImageManipulator()
 {
     imageData = NULL;
     imageLoaded = false;
+    isGrayscale = false;
 }
 
 ImageManipulator::~ImageManipulator()
@@ -138,6 +140,7 @@ void ImageManipulator::convertToGrayscale()
                 setPixel(x, y, color);
             }
         }
+        isGrayscale = true;
         cout << "Image successfully converted to grayscale," << endl;
     }
     else
@@ -209,20 +212,76 @@ void ImageManipulator::printHeader()
 
 }
 
-void ImageManipulator::applySobelsFilter()
+void ImageManipulator::printDataImage(const bool isTest, const int maxTestSize)
 {
+    int height;
+    int widht;
+    if(isTest)
+    {
+        if(header.height < maxTestSize)
+        {
+            height = header.height;
+        }
+        else
+        {
+            height = maxTestSize;
+        }
+
+        if(header.widht < maxTestSize)
+        {
+            widht = header.widht;
+        }
+        else
+        {
+            widht = maxTestSize;
+        }
+    }
+    else
+    {
+        height = header.height;
+        widht = header.widht;
+    }
+    for(int y = 0; y < height; y++)
+    {
+        for(int x = 0; x < widht; x++)
+        {
+            Color color = getPixel(x, y);
+            cout << "(" << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ")";
+            cout << " ";
+
+        }
+        cout << endl;
+    }
+}
+
+BYTE* ImageManipulator::applySobelsFilter(const int initialX, const int initialY, const int finalX, const int finalY)
+{
+    BYTE* imageSection = NULL;
 
     if(imageLoaded)
     {
-        Sobel* sobelFilter = new Sobel();
-        sobelFilter->applySobelFilter(convolutionMatrix, imageData);
+        if(isGrayscale)
+        {
+            Sobel sobelFilter(*this);
+            sobelFilter.applySobelFilter(initialX, initialY, finalX, finalY);
+            imageSection = sobelFilter.edgeDetectedImage.imageData;
 
+            cout << "Sobel filter was succesfully applied to the sector of the image: From (" <<  initialX << ", " << finalX << ")" << " To " <<  initialY << ", " << finalY << ")"<< endl;
 
-        cout << "Image successfully applied the Sobel Filter." << endl;
+        }
+        else
+        {
+            cout << "You must first convert the image to grayscale. Calling convertToGrayscale() method..." << endl;
+            convertToGrayscale();
+            applySobelsFilter(initialX, initialY, finalX, finalY);
+
+        }
     }
     else
     {
         cout << "You must first load the image that you want to apply the Sobel filter" << endl;
     }
+
+    return imageSection;
 
 }

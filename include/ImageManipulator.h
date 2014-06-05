@@ -18,7 +18,6 @@ Navarro Palos Carlos Eduardo
 #include <math.h>
 
 #include "Definitions.h"
-#include "Sobel.h"
 
 #define BITS_PER_PIXEL 24
 #define RGB2GRAY(r,g,b) (BYTE)( (b)*0.3 + (g)*0.59 + (r)*0.11 )
@@ -96,17 +95,30 @@ public:
     */
     void printHeader();
     /*
-    This method applies sobel filter to the image data
+    This method applies sobel filter to the image data in the given sector of the image.
+    This is usefull for distributing the job.
     */
-    void applySobelsFilter();
+    BYTE* applySobelsFilter(const int initialX, const int initialY, const int finalX, const int finalY);
+    /*
+    Prints the image matrix following this form
+    (r,g,b)(r,g,b)...(r,g,b)
+    (r,g,b)(r,g,b)...(r,g,b)
+    ...
+    (r,g,b)(r,g,b)...(r,g,b)
 
-protected:
-private:
+    Since an image has a huge amount of pixels, for default only shows a matrix of 10x10
+
+    */
+    void printDataImage(const bool isTest = true, const int maxTestSize = 10);
+
+//protected:
+//private:
 
     FILE* imageFile; //The file where you load the image
     BMPHeader header; //The header of the BMP
-        BYTE* imageData; //The image as a binary
+    BYTE* imageData; //The image as a binary
     bool imageLoaded; //This flag allows you to use all the methods of this class.
+    bool isGrayscale; //True if the greyscale filter was applied to the image
 
     /*
     This method returns a Color struct using the given x and y coordinates. The color struct

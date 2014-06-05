@@ -25,11 +25,18 @@ typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
 
-const int convolutionMatrix[CONVOLUTION_MATRIX_ROWS][CONVOLUTION_MATRIX_COLUMNS] =
+const int convolutionMatrixX[CONVOLUTION_MATRIX_ROWS][CONVOLUTION_MATRIX_COLUMNS] =
 {
     {-1, -2, -1},
     {0, 0, 0},
     {1, 2, 1}
+};
+
+const int convolutionMatrixY[CONVOLUTION_MATRIX_ROWS][CONVOLUTION_MATRIX_COLUMNS] =
+{
+    {-1, 0, 1},
+    {-2, 0, 2},
+    {-1, 0, 1}
 };
 
 
