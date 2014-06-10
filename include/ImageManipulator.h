@@ -20,7 +20,8 @@ Navarro Palos Carlos Eduardo
 #include "Definitions.h"
 
 #define BITS_PER_PIXEL 24
-#define RGB2GRAY(r,g,b) (BYTE)( (b)*0.3 + (g)*0.59 + (r)*0.11 )
+#define RGB2GRAY(r,g,b) (BYTE)( (b)*0.3 + (g)*0.59 + (r)*0.11)
+#define CLAMP(x)  (((x) > (255)) ? (255) : (((x) < (0)) ? (0) : (x)))
 
 namespace imageManipulator
 {
@@ -91,6 +92,10 @@ public:
     */
     void convertToGrayscale();
     /*
+    This method changes the brightness of the entire image.
+    */
+    void applyBrihtness(const int level);
+    /*
     This method prints the header INFO
     */
     void printHeader();
@@ -122,11 +127,14 @@ public:
 
     /*
     This method returns a Color struct using the given x and y coordinates. The color struct
-    contains the pixel in RGB form.
+    contains the pixel in RGB form. The programmer is responsable to check that the indexes are a valids
+    indexes.
     */
     Color getPixel(const int x, const int y);
     /*
     This method put the the new pixel with the given color in the given coordinates.
+    The programmer is responsable to check that the indexes are a valids
+    indexes.
     */
     void setPixel(const int x, const int y, const Color color);
 

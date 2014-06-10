@@ -149,6 +149,34 @@ void ImageManipulator::convertToGrayscale()
     }
 }
 
+
+void ImageManipulator::applyBrihtness(const int level)
+{
+    if(imageLoaded)
+    {
+        for(int y = 0; y < header.height; y++)
+        {
+            for(int x = 0; x < header.widht; x++)
+            {
+                Color color = getPixel(x, y);
+
+                color.r = CLAMP(color.r + level);
+                color.g = CLAMP(color.g + level);
+                color.b = CLAMP(color.b + level);
+
+                setPixel(x, y, color);
+            }
+        }
+        isGrayscale = true;
+        cout << "Image successfully changed the brightness," << endl;
+    }
+    else
+    {
+        cout << "You must first load the image that you want to change the brightness." << endl;
+    }
+
+}
+
 Color ImageManipulator::getPixel(const int x, const int y)
 {
     Color color;

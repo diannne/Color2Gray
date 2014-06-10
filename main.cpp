@@ -52,12 +52,15 @@ int main( int argc, char *argv[])
 
     imageManipulator->saveImage(grayscaleFileName.c_str());
 
-    section1 = imageManipulator->applySobelsFilter(0, 0, 100, 100);
+    section1 = imageManipulator->applySobelsFilter(0, 0, 310, 432);
     section1.saveImage(section1FileName.c_str());
-    section2 = imageManipulator->applySobelsFilter(101, 101, 200, 200);
+    section2 = imageManipulator->applySobelsFilter(311, 433, 620, 465);
     section1.saveImage(section2FileName.c_str());
-    section3 = imageManipulator->applySobelsFilter(201, 201, 400, 400);
-    section1.saveImage(section3FileName.c_str());
+
+    /**
+    Only the clean up the borders. THis call is optional
+    **/
+    imageManipulator->applyBrihtness(50);
 
     imageManipulator->saveImage(sobelFileName.c_str());
 

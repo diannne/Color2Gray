@@ -12,6 +12,7 @@ Navarro Palos Carlos Eduardo
 #define SOBEL_H
 
 #include <iostream>
+#include <math.h>
 #include "Definitions.h"
 #include "ImageManipulator.h"
 
