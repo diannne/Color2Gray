@@ -33,16 +33,13 @@ int main( int argc, char *argv[])
     std::string sobelFileName = fileName;
     std::string section1FileName = fileName;
     std::string section2FileName = fileName;
-    std::string section3FileName = fileName;
     grayscaleFileName.insert(fileName.size() - 4, "_grayscale");
     sobelFileName.insert(fileName.size() - 4, "_sobel");
     section1FileName.insert(fileName.size() - 4, "_section1");
     section2FileName.insert(fileName.size() - 4, "_section2");
-    section3FileName.insert(fileName.size() - 4, "_section3");
 
     ImageManipulator section1;
     ImageManipulator section2;
-    ImageManipulator section3;
 
     ImageManipulator* imageManipulator = new ImageManipulator();
     imageManipulator->openImage(fileName.c_str());
@@ -52,9 +49,9 @@ int main( int argc, char *argv[])
 
     imageManipulator->saveImage(grayscaleFileName.c_str());
 
-    section1 = imageManipulator->applySobelsFilter(0, 0, 310, 432);
+    section1 = imageManipulator->applySobelsFilter(0, 0, 620, 233);
     section1.saveImage(section1FileName.c_str());
-    section2 = imageManipulator->applySobelsFilter(311, 433, 620, 465);
+    section2 = imageManipulator->applySobelsFilter(0, 233, 620, 465);
     section1.saveImage(section2FileName.c_str());
 
     /**
