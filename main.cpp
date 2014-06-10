@@ -49,9 +49,9 @@ int main( int argc, char *argv[])
 
     imageManipulator->saveImage(grayscaleFileName.c_str());
 
-    section1 = imageManipulator->applySobelsFilter(0, 0, 620, 233);
+    section1 = imageManipulator->applySobelsFilter(0, 0, imageManipulator->header.widht, imageManipulator->header.height / 2);
     section1.saveImage(section1FileName.c_str());
-    section2 = imageManipulator->applySobelsFilter(0, 233, 620, 465);
+    section2 = imageManipulator->applySobelsFilter(0,  imageManipulator->header.height / 2, imageManipulator->header.widht, imageManipulator->header.height);
     section1.saveImage(section2FileName.c_str());
 
     /**
