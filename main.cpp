@@ -84,14 +84,14 @@ int main( int argc, char *argv[])
 
     for(int i = 0; i < numberHosts; i++)
     {
-        string section1FileName = fileName;
+        string sectionFileName = fileName;
         ImageManipulator imageSection;
         char sectionName[NAME_LENGHT];
         snprintf(sectionName, sizeof(sectionName), "%d", i);
-        section1FileName.insert(fileName.size() - 4, sectionName);
+        sectionFileName.insert(fileName.size() - 4, sectionName);
 
         imageSection = imageManipulator->applySobelsFilter(0, sectionHeightBuffer, imageManipulator->header.widht, sectionHeightBuffer + sectionHeight);
-        imageSection.saveImage(section1FileName.c_str());
+        imageSection.saveImage(sectionFileName.c_str());
 
         sectionHeightBuffer += sectionHeight;
 
