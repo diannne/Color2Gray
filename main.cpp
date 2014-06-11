@@ -62,18 +62,6 @@ int main( int argc, char *argv[])
     grayscaleFileName.insert(fileName.size() - 4, "_grayscale");
     sobelFileName.insert(fileName.size() - 4, "_sobel");
 
-    // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
-
-    // Get the number of processes
-    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-
-    // Get the rank of the process
-    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-
-    // Get the name of the processor
-    MPI_Get_processor_name(processorName, &nameLength);
-
     ImageManipulator* imageManipulator = new ImageManipulator();
     imageManipulator->openImage(fileName.c_str());
 
@@ -84,6 +72,15 @@ int main( int argc, char *argv[])
 
     int sectionHeight = imageManipulator->header.height / numberHosts;
     int sectionHeightBuffer = 0;
+
+    // Initialize the MPI environment
+    MPI_Init(NULL, NULL);
+    // Get the number of processes
+    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+    // Get the rank of the process
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+    // Get the name of the processor
+    MPI_Get_processor_name(processorName, &nameLength);
 
     for(int i = 0; i < numberHosts; i++)
     {
@@ -97,8 +94,12 @@ int main( int argc, char *argv[])
         imageSection.saveImage(section1FileName.c_str());
 
         sectionHeightBuffer += sectionHeight;
-    }
 
+        cout << "Filter applied from processor " << processorName << ", rank " << worldRank << " out of " << worldSize << " processor" << endl;
+
+        //should be worldSize and not numberHosts
+        //cout << "Filter applied from processor " << processorName << ", rank " << i + 1 << " out of " << numberHosts << " processor" << endl;
+    }
 
     //Only the clean up the borders. THis call is optional
     imageManipulator->applyBrihtness(50);
