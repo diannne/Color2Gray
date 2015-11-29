@@ -277,11 +277,15 @@ void ImageManipulator::convertTolab(const int initialX,
 
 void ImageManipulator::writeLabData() {
 	int rank;
+	int size;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	string fileName;
 	stringstream ss;
 	ss << "lab";
 	ss << rank;
+	ss << "_";
+	ss << size;
 	ss << ".data";
 	fileName = ss.str();
 	FILE *labFile = fopen(fileName.c_str(), "wb");
@@ -293,11 +297,17 @@ void ImageManipulator::writeLabData() {
 
 void ImageManipulator::writeDeltasData() {
 	int rank;
+	int size;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	
 	string fileName;
 	stringstream ss;
 	ss << "deltas";
 	ss << rank;
+	ss << "_";
+	ss << size;
+	
 	ss << ".data";
 	fileName = ss.str();
 	FILE *deltasFile = fopen(fileName.c_str(), "wb");
@@ -309,11 +319,17 @@ void ImageManipulator::writeDeltasData() {
 
 void ImageManipulator::writeOptimizedData() {
 	int rank;
+	int size;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	
 	string fileName;
 	stringstream ss;
 	ss << "optimized";
 	ss << rank;
+	ss << "_";
+	ss << size;
+	
 	ss << ".data";
 	fileName = ss.str();
 	FILE *optimzedFile = fopen(fileName.c_str(), "wb");
@@ -325,12 +341,18 @@ void ImageManipulator::writeOptimizedData() {
 
 void ImageManipulator::readDeltasData() {
 	int rank;
+	int size;
 	_deltas = new double[getWidth() * getHeight()];
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	
 	string fileName;
 	stringstream ss;
 	ss << "deltas";
 	ss << rank;
+	ss << "_";
+	ss << size;
+	
 	ss << ".data";
 	fileName = ss.str();
 	FILE *deltasFile = fopen(fileName.c_str(), "rb");
@@ -341,12 +363,18 @@ void ImageManipulator::readDeltasData() {
 
 void ImageManipulator::readLabData() {
 	int rank;
+	int size;
 	_data = new CIE_Lab[getWidth() * getHeight()];
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	
 	string fileName;
 	stringstream ss;
 	ss << "lab";
 	ss << rank;
+	ss << "_";
+	ss << size;
+	
 	ss << ".data";
 	fileName = ss.str();
 	FILE *labFile = fopen(fileName.c_str(), "rb");
@@ -357,12 +385,18 @@ void ImageManipulator::readLabData() {
 
 void ImageManipulator::readOptimizedData() {
 	int rank;
+	int size;
 	_dataOutput = new double[getWidth() * getHeight()];
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	
 	string fileName;
 	stringstream ss;
 	ss << "optimized";
 	ss << rank;
+	ss << "_";
+	ss << size;
+	
 	ss << ".data";
 	fileName = ss.str();
 	FILE *optimizedFile = fopen(fileName.c_str(), "rb");
