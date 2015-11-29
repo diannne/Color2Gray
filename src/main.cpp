@@ -12,6 +12,7 @@
 #include <string>
 #include "ImageManipulator.h"
 #include "Definitions.h"
+#include <sstream>
 
 #define NAME_LENGTH 11
 
@@ -21,8 +22,8 @@ using namespace std;
 int rv;
 
 int main(int argc, char *argv[]) {
-	if (argc != 2) {
-		cout << "Usage: mpirun -np [task#] ./exec bmp_image" << endl;
+	if (argc != 3) {
+		cout << "Usage: mpirun -np [task#] ./exec input_file step" << endl;
 		return -1;
 	}
 
@@ -57,96 +58,240 @@ int main(int argc, char *argv[]) {
 	// Get the name of the processor
 	MPI_Get_processor_name(processorName, &nameLength);
 
-	string fileName(argv[1]);
-	string sobelFileName = fileName;
+	string input_file(argv[1]);
+	string step_str(argv[2]);
+	int step;
+	istringstream buffer(step_str);
+	buffer >> step;
+	
+	clock_t start, end;
+	double duration;
+	string timeFileName;
+	stringstream ss;
+	FILE *time_log = NULL;
 
-	sobelFileName.insert(fileName.size() - 4, "_sobel");
 	ImageManipulator imageManipulator;
-	imageManipulator.openImage(fileName.c_str());
+	int sectionHeight;
+	string grayscaleFileName;
 
-	string sectionFileName = fileName;
-	char sectionName[NAME_LENGTH];
-	snprintf(sectionName, sizeof (sectionName), "%d", rank);
-	sectionFileName.insert(fileName.size() - 4, sectionName);
-
-	printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
-		imageManipulator.getHeight());
-
-	int sectionHeight = imageManipulator.getHeight() / worldSize;
-	int gooch = 0;
-	ImageManipulator littleIm(imageManipulator);
-	littleIm.setHeight((DWORD) sectionHeight);
-	littleIm.convertToGrayscale(0,
-		rank * sectionHeight, littleIm.getWidth(),
-		((rank + 1) * sectionHeight), rv, gooch);
-
-	if (rv) {
-		cout << "Conversion to basic grayscale failed for " << rank << "th processor" << endl;
-		MPI_Finalize();
-		return -1;
-	}
-
-	//MPI_Barrier(MPI_COMM_WORLD);
-
-	//	MPI_Gather(littleIm.greyImageData + sectionHeight*rank*littleIm.getWidth()*3, 
-	//	sectionHeight*littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData, 
-	//	sectionHeight*littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
-	//	
-	MPI_Allgather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
-		sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
-		sectionHeight * littleIm.getWidth()*3, MPI_CHAR, MPI_COMM_WORLD);
-
-	if (rank == 0) {
-		string grayscaleFileName = fileName;
-		grayscaleFileName.insert(fileName.size() - 4, "_basic_grayscale");
-		imageManipulator.saveImage(grayscaleFileName.c_str(), true);
-	}
-
-	//1 means that the algorithm will only apply the first step of 
-	gooch = 1;
-	littleIm.convertToGrayscale(0,
-		rank * sectionHeight, littleIm.getWidth(),
-		((rank + 1) * sectionHeight), rv, gooch);
-
-	if (rv) {
-		cout << "Conversion to gooch grayscale failed for " << rank << "th processor" << endl;
-		MPI_Finalize();
-		return -1;
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	MPI_Gather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
-		sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
-		sectionHeight * littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-	if (rank == 0) {
-		string grayscaleFileName = fileName;
-		grayscaleFileName.insert(fileName.size() - 4, "_gooch_grayscale");
-		imageManipulator.saveImage(grayscaleFileName.c_str(), true);
-	}
+	switch (step) {
+		case 0:
+		{
+			imageManipulator.openImage(input_file.c_str());
 
 
-	littleIm.applySobelsFilter(0,
-		rank * sectionHeight, littleIm.getWidth(),
-		((rank + 1) * sectionHeight), rv);
+			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
+				imageManipulator.getHeight());
 
-	if (rv) {
-		cout << "Applying Sobel Filter failed for " << rank << "th processor" << endl;
-		MPI_Finalize();
-		return -1;
-	}
+			sectionHeight = imageManipulator.getHeight() / worldSize;
 
-	MPI_Barrier(MPI_COMM_WORLD);
+			ImageManipulator littleIm(imageManipulator);
+			littleIm.setHeight((DWORD) sectionHeight);
+			littleIm.convertToGrayscale(0,
+				rank * sectionHeight, littleIm.getWidth(),
+				((rank + 1) * sectionHeight), rv, step);
 
-	MPI_Gather(littleIm.imageData + sectionHeight * rank * littleIm.getWidth()*3,
-		sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.imageData,
-		sectionHeight * littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
+			if (rv) {
+				cout << "Conversion to basic grayscale failed for " << rank << "th processor" << endl;
+				MPI_Finalize();
+				return -1;
+			}
 
-	if (rank == 0) {
-		string sobelImageFile = fileName;
-		sobelImageFile.insert(fileName.size() - 4, "_sobel");
-		imageManipulator.saveImage(sobelImageFile.c_str());
+
+			MPI_Allgather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
+				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
+				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, MPI_COMM_WORLD);
+
+			if (rank == 0) {
+				grayscaleFileName = input_file;
+				grayscaleFileName.insert(input_file.size() - 4, "_basic_grayscale");
+				imageManipulator.saveImage(grayscaleFileName.c_str(), true);
+			}
+			break;
+		}
+		case 1:
+		{
+			//1 means that the algorithm will only apply the first step:convertToLab
+			imageManipulator.openImage(input_file.c_str());
+
+			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
+				imageManipulator.getHeight());
+
+			sectionHeight = imageManipulator.getHeight() / worldSize;
+			ImageManipulator littleIm(imageManipulator);
+			littleIm.setHeight((DWORD) sectionHeight);
+
+			MPI_Barrier(MPI_COMM_WORLD);
+			start = clock();
+			littleIm.convertToGrayscale(0,
+				rank * sectionHeight, littleIm.getWidth(),
+				((rank + 1) * sectionHeight), rv, step);
+			MPI_Barrier(MPI_COMM_WORLD);
+			end = clock();
+			if (rank == 0) {
+				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				ss << "logs/convertToLab";
+				ss << worldSize;
+				timeFileName = ss.str();
+				time_log = fopen(timeFileName.c_str(), "wb");
+				fprintf(time_log, "Total time taken by CPU: %f\n", duration);
+				fclose(time_log);
+			}
+			if (rv) {
+				cout << "Conversion to CIE lab failed for " << rank << "th processor" << endl;
+				MPI_Finalize();
+				return -1;
+			}
+			littleIm.writeLabData();
+			break;
+		}
+		case 2:
+		{
+			//1 means that the algorithm will only apply the second step
+			imageManipulator.openImage(input_file.c_str());
+
+			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
+				imageManipulator.getHeight());
+
+			sectionHeight = imageManipulator.getHeight() / worldSize;
+			ImageManipulator littleIm(imageManipulator);
+			littleIm.setHeight((DWORD) sectionHeight);
+			littleIm.readLabData();
+
+			MPI_Barrier(MPI_COMM_WORLD);
+			start = clock();
+			littleIm.convertToGrayscale(0,
+				rank * sectionHeight, littleIm.getWidth(),
+				((rank + 1) * sectionHeight), rv, step);
+			MPI_Barrier(MPI_COMM_WORLD);
+			end = clock();
+			if (rank == 0) {
+				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				ss << "logs/computeTargetDiff";
+				ss << worldSize;
+				timeFileName = ss.str();
+				time_log = fopen(timeFileName.c_str(), "wb");
+				fprintf(time_log, "Total time taken by CPU: %f\n", duration);
+				fclose(time_log);
+			}
+			littleIm.writeDeltasData();
+			break;
+		}
+		case 3:
+		{
+			//resolve optimization
+			//1 means that the algorithm will only apply the second step
+			imageManipulator.openImage(input_file.c_str());
+
+			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
+				imageManipulator.getHeight());
+
+			sectionHeight = imageManipulator.getHeight() / worldSize;
+			ImageManipulator littleIm(imageManipulator);
+			littleIm.setHeight((DWORD) sectionHeight);
+			
+			littleIm.readLabData();
+			littleIm.readDeltasData();
+
+			MPI_Barrier(MPI_COMM_WORLD);
+			start = clock();
+			littleIm.convertToGrayscale(0,
+				rank * sectionHeight, littleIm.getWidth(),
+				((rank + 1) * sectionHeight), rv, step);
+			MPI_Barrier(MPI_COMM_WORLD);
+			end = clock();
+			if (rank == 0) {
+				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				ss << "logs/computeOptimization";
+				ss << worldSize;
+				timeFileName = ss.str();
+				time_log = fopen(timeFileName.c_str(), "wb");
+				fprintf(time_log, "Total time taken by CPU: %f\n", duration);
+				fclose(time_log);
+			}
+			littleIm.writeOptimizedData();
+			break;
+		}
+		case 4:
+		{
+			//covnert back to RGB
+			imageManipulator.openImage(input_file.c_str());
+
+			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
+				imageManipulator.getHeight());
+
+			sectionHeight = imageManipulator.getHeight() / worldSize;
+			ImageManipulator littleIm(imageManipulator);
+			littleIm.setHeight((DWORD) sectionHeight);
+			littleIm.readOptimizedData();
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			start = clock();
+			littleIm.convertToGrayscale(0,
+				rank * sectionHeight, littleIm.getWidth(),
+				((rank + 1) * sectionHeight), rv, step);
+			MPI_Barrier(MPI_COMM_WORLD);
+			end = clock();
+			
+			
+			MPI_Gather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
+				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
+				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+			if (rank == 0) {
+				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				ss << "logs/convertToRgb";
+				ss << worldSize;
+				timeFileName = ss.str();
+				time_log = fopen(timeFileName.c_str(), "wb");
+				fprintf(time_log, "Total time taken by CPU: %f\n", duration);
+				fclose(time_log);
+
+				grayscaleFileName = input_file;
+				grayscaleFileName.insert(input_file.size() - 4, "_gooch_grayscale");
+				imageManipulator.saveImage(grayscaleFileName.c_str(), true);
+			}
+			break;
+
+		}
+		default:
+			imageManipulator.openImage(input_file.c_str());
+
+			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
+				imageManipulator.getHeight());
+
+			sectionHeight = imageManipulator.getHeight() / worldSize;
+			ImageManipulator littleIm(imageManipulator);
+			littleIm.setHeight((DWORD) sectionHeight);
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			start = clock();
+			littleIm.convertToGrayscale(0,
+				rank * sectionHeight, littleIm.getWidth(),
+				((rank + 1) * sectionHeight), rv, step);
+			MPI_Barrier(MPI_COMM_WORLD);
+			end = clock();
+			
+			
+			MPI_Gather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
+				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
+				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+			if (rank == 0) {
+				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				ss << "logs/allGOOCH";
+				ss << worldSize;
+				timeFileName = ss.str();
+				time_log = fopen(timeFileName.c_str(), "wb");
+				fprintf(time_log, "Total time taken by CPU: %f\n", duration);
+				fclose(time_log);
+
+				grayscaleFileName = input_file;
+				grayscaleFileName.insert(input_file.size() - 4, "_all_gooch_grayscale");
+				imageManipulator.saveImage(grayscaleFileName.c_str(), true);
+			}
+			break;
+
 	}
 
 	// Finalize the MPI environment.

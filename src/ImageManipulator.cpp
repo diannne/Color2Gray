@@ -23,7 +23,7 @@ ImageManipulator::ImageManipulator() {
 	isGrayscale = false;
 	_radius = 0;
 	_theta = 45;
-	_alpha = 20;
+	_alpha = 25;
 	_iterations = 30;
 
 }
@@ -147,18 +147,18 @@ void ImageManipulator::convertToGrayscale(const int initialX,
 	string intermFileName;
 	stringstream ss;
 	FILE *time_log = NULL;
-	
+	int rank;
+
 	if (imageLoaded) {
 
 		//convertToLab
 		for (int y = initialY; y < finalY; y++) {
-			for (int x = initialX; x < finalX; x++) {		BYTE luminance = 0;
+			for (int x = initialX; x < finalX; x++) {
+				BYTE luminance = 0;
 
 				Color color = getPixel(imageData, x, y);
 
 				luminance = color.ToGrayscale();
-				//double L = 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
-				//L = (color.r + color.g + color.b) / 3;
 				color.r = luminance;
 				color.g = luminance;
 				color.b = luminance;
@@ -170,37 +170,34 @@ void ImageManipulator::convertToGrayscale(const int initialX,
 		if (gooch) {
 			switch (gooch) {
 				case 1:
-					start = clock();
+					cout << "Converting to LAB..." << endl;
 					convertTolab(initialX, initialY, finalX, finalY);
-					end = clock();
-					duration = (double)(end - start) / CLOCKS_PER_SEC;
-					intermFileName = "convertToLab_";
-					ss << getWidth();
-					//intermFileName += "_" + ss.str();
-					ss << "x";
-					ss << getHeight();
-					intermFileName  += ss.str() + ".time";
-					
-					time_log = fopen(intermFileName.c_str(), "wb");
-					fprintf(time_log, "Total time taken by CPU: %f\n", duration);
 					break;
 				case 2:
+					cout << "Computing target diff..." << endl;
 					computeTargetDifferences();
 					break;
 				case 3:
+					cout << "Resolving Optimization Problem..." << endl;
 					resolveOptimizationProblem();
 					break;
-				default:
+				case 4:
+					cout << "Converting to RGB..." << endl;
 					convertToRgb(initialX, initialY, finalX, finalY);
+					break;
+				default:
+					cout << "Applying all GOOCH..." << endl;
+					convertTolab(initialX, initialY, finalX, finalY);
+					computeTargetDifferences();
+					resolveOptimizationProblem();
+					convertToRgb(initialX, initialY, finalX, finalY);
+					
 
 			}
 
 		}
 
 		isGrayscale = true;
-		int rank;
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		cout << "Image successfully converted to grayscale for " << rank << endl;
 		rv = 0;
 	} else {
 		cout << "You must first load the image that you want to convert to greyscale." << endl;
@@ -210,14 +207,14 @@ void ImageManipulator::convertToGrayscale(const int initialX,
 
 void ImageManipulator::computeTargetDifferences() {
 	int N = getWidth() * getHeight();
-
+	int rank;
 	_deltas = new double[N];
 	/*free me!!!*/
 
 	//initialize to zeroed values
 	for (int i = 0; i < N; ++i)
 		_deltas[i] = 0.0;
-	printf("radius is %d\n", _radius);
+	
 	if (_radius) {
 		for (int x = getWidth() - 1; x >= 0; x--) {
 			for (int y = getHeight() - 1; y >= 0; y--) {
@@ -241,17 +238,17 @@ void ImageManipulator::computeTargetDifferences() {
 			}
 		}
 	} else {
-		printf("radius is %d  N is %d height is %d\n", _radius, N, getHeight());
+		
 		for (int x = N - 1; x >= 0; x--) {
 			for (int y = x + 1; y < N; ++y) {
-				clock_t start = clock();
 				double little_delta = computeDelta(x, y);
 				_deltas[x] += little_delta;
 				_deltas[y] -= little_delta;
-				clock_t fin = clock();
 			}
 		}
 	}
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	cout << "Successfully computed target diff " << rank << endl;
 }
 
 void ImageManipulator::convertTolab(const int initialX,
@@ -259,7 +256,8 @@ void ImageManipulator::convertTolab(const int initialX,
 
 	_data = new CIE_Lab[getWidth() * getHeight()];
 	int itr = 0;
-
+	int rank;
+	
 	//convertToLab
 	for (int y = initialY; y < finalY; y++) {
 		for (int x = initialX; x < finalX; x++) {
@@ -271,6 +269,105 @@ void ImageManipulator::convertTolab(const int initialX,
 			_data[itr].L = temp.L;
 			itr++;
 		}
+	}
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	cout << "Successfully converted to lab for " << rank << endl;
+
+}
+
+void ImageManipulator::writeLabData() {
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	string fileName;
+	stringstream ss;
+	ss << "lab";
+	ss << rank;
+	ss << ".data";
+	fileName = ss.str();
+	FILE *labFile = fopen(fileName.c_str(), "wb");
+	for (int i = 0; i < getWidth() * getHeight(); ++i) {
+		fprintf(labFile, "%f %f %f", _data[i].a, _data[i].b, _data[i].L);
+	}
+	delete _data;
+}
+
+void ImageManipulator::writeDeltasData() {
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	string fileName;
+	stringstream ss;
+	ss << "deltas";
+	ss << rank;
+	ss << ".data";
+	fileName = ss.str();
+	FILE *deltasFile = fopen(fileName.c_str(), "wb");
+	for (int i = 0; i < getWidth() * getHeight(); ++i) {
+		fprintf(deltasFile, "%lf ", _deltas[i]);
+	}
+	delete _deltas;
+}
+
+void ImageManipulator::writeOptimizedData() {
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	string fileName;
+	stringstream ss;
+	ss << "optimized";
+	ss << rank;
+	ss << ".data";
+	fileName = ss.str();
+	FILE *optimzedFile = fopen(fileName.c_str(), "wb");
+	for (int i = 0; i < getWidth() * getHeight(); ++i) {
+		fprintf(optimzedFile, "%lf ", _dataOutput[i]);
+	}
+	delete _dataOutput;
+}
+
+void ImageManipulator::readDeltasData() {
+	int rank;
+	_deltas = new double[getWidth() * getHeight()];
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	string fileName;
+	stringstream ss;
+	ss << "deltas";
+	ss << rank;
+	ss << ".data";
+	fileName = ss.str();
+	FILE *deltasFile = fopen(fileName.c_str(), "rb");
+	for (int i = 0; i < getWidth() * getHeight(); ++i) {
+		fscanf(deltasFile, "%lf ", &_deltas[i]);
+	}
+}
+
+void ImageManipulator::readLabData() {
+	int rank;
+	_data = new CIE_Lab[getWidth() * getHeight()];
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	string fileName;
+	stringstream ss;
+	ss << "lab";
+	ss << rank;
+	ss << ".data";
+	fileName = ss.str();
+	FILE *labFile = fopen(fileName.c_str(), "rb");
+	for (int i = 0; i < getWidth() * getHeight(); ++i) {
+		fscanf(labFile, "%lf %lf %lf", &_data[i].a, &_data[i].b, &_data[i].L);
+	}
+}
+
+void ImageManipulator::readOptimizedData() {
+	int rank;
+	_dataOutput = new double[getWidth() * getHeight()];
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	string fileName;
+	stringstream ss;
+	ss << "optimized";
+	ss << rank;
+	ss << ".data";
+	fileName = ss.str();
+	FILE *optimizedFile = fopen(fileName.c_str(), "rb");
+	for (int i = 0; i < getWidth() * getHeight(); ++i) {
+		fscanf(optimizedFile, "%lf ", &_dataOutput[i]);
 	}
 }
 

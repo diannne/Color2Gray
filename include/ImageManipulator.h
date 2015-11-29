@@ -90,7 +90,14 @@ namespace imageManipulator {
 		void resolveOptimizationProblem();
 		void convertToRgb(const int, const int, const int, const int);
 		void SetGreyOutput(const int, const int, const int, const int);
-
+		void writeLabData();
+		void readLabData();
+		void writeDeltasData();
+		void readDeltasData();
+		
+		void writeOptimizedData();
+		void readOptimizedData();
+		
 		/*
 		This method changes the brightness of the entire image.
 		 */
