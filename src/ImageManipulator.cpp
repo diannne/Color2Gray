@@ -1,13 +1,9 @@
 /*
-SOBEL FILTER USING MPI
-CENTRO UNIVERSITARIO DE CIENCIAS EXACTAS E INGIENERIAS
-CONCURRENT AND DISTRIBUTED PROGRAMMING 2014A
-
-
-Venegas Munoz Carlos
-Navarro Palos Carlos Eduardo
-
+ * MPI Gooch Algorithm for Converting to Greyscale
+ * Diana Popa
+ * Polytechnica University of Bucharest
  */
+
 #include "ImageManipulator.h"
 #include <string.h>
 #include <mpi.h>
@@ -25,6 +21,8 @@ ImageManipulator::ImageManipulator() {
 	_theta = 45;
 	_alpha = 25;
 	_iterations = 30;
+	_cosTheta = cos(_theta);
+	_sinTheta = sin(_theta);
 
 }
 
@@ -46,6 +44,8 @@ ImageManipulator::ImageManipulator(const ImageManipulator& src) {
 	_theta = src._theta;
 	_alpha = src._alpha;
 	_iterations = src._iterations;
+	_cosTheta = src._cosTheta;
+	_sinTheta = src._sinTheta;
 }
 
 bool ImageManipulator::openImage(const char* filePath) {
@@ -487,8 +487,7 @@ double ImageManipulator::crunch(double x) {
 
 double ImageManipulator::computeDelta(int i, int j) {
 	double dL = _data[i].L - _data[j].L;
-	double cosTheta = cos(_theta);
-	double sinTheta = sin(_theta);
+	
 	double a = _data[i].a - _data[j].a;
 	double b = _data[i].b - _data[j].b;
 	double dC = sqrt(a * a + b * b);
@@ -499,7 +498,7 @@ double ImageManipulator::computeDelta(int i, int j) {
 		return dL;
 	}
 
-	double vTheta = cosTheta * a + sinTheta*b;
+	double vTheta = _cosTheta * a + _sinTheta*b;
 	if ((vTheta * crunchX) > 0)
 		return crunchX;
 	return -crunchX;

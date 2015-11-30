@@ -1,6 +1,6 @@
 /* 
  * File:   Color_Space_Conversions.h
- * Author: diana
+ * Author: Diana Popa
  *
  * Created on November 21, 2015, 2:20 AM
  */

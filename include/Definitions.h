@@ -1,13 +1,9 @@
 /*
-SOBEL FILTER USING MPI
-CENTRO UNIVERSITARIO DE CIENCIAS EXACTAS E INGIENERIAS
-CONCURRENT AND DISTRIBUTED PROGRAMMING 2014A
-
-
-Venegas Munoz Carlos
-Navarro Palos Carlos Eduardo
-
+ * MPI Gooch Algorithm for Converting to Greyscale
+ * Diana Popa
+ * Polytechnica University of Bucharest
  */
+
 #ifndef DEFINITIONS_H_INCLUDED
 #define DEFINITIONS_H_INCLUDED
 

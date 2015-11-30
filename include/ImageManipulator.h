@@ -1,13 +1,9 @@
 /*
-SOBEL FILTER USING MPI
-CENTRO UNIVERSITARIO DE CIENCIAS EXACTAS E INGIENERIAS
-CONCURRENT AND DISTRIBUTED PROGRAMMING 2014A
-
-
-Venegas Munoz Carlos
-Navarro Palos Carlos Eduardo
-
+ * MPI Gooch Algorithm for Converting to Greyscale
+ * Diana Popa
+ * Polytechnica University of Bucharest
  */
+
 
 #ifndef IMAGEMANIPULATOR_H
 #define IMAGEMANIPULATOR_H
@@ -141,6 +137,8 @@ namespace imageManipulator {
 		double * _dataOutput;
 		int _iterations;
 		Color *_greyOutput;
+		double _sinTheta;
+		double _cosTheta;
 		/*
 		This method returns a Color struct using the given x and y coordinates. The color struct
 		contains the pixel in RGB form. The programmer is responsable to check that the indexes are a valids
