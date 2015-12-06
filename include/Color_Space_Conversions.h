@@ -26,7 +26,9 @@ struct Color {
 	}
 
 	BYTE ToGrayscale() {
-		return BYTE(double(0.299) * r + double(0.587) * g + double(0.114) * b + 0.5);
+		double aux = double(0.299) * r + double(0.587) * g + double(0.114) * b;
+		//printf (" aux is %f while r %d g %d b %d\n", aux, r , g, b);
+		return BYTE(aux);
 	}
 };
 

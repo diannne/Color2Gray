@@ -13,6 +13,7 @@
 #include "ImageManipulator.h"
 #include "Definitions.h"
 #include <sstream>
+#include "bitmap_image.hpp"
 
 #define NAME_LENGTH 11
 
@@ -60,11 +61,12 @@ int main(int argc, char *argv[]) {
 
 	string input_file(argv[1]);
 	string step_str(argv[2]);
+	
 	int step;
 	istringstream buffer(step_str);
 	buffer >> step;
-	
-	clock_t start, end;
+
+	double starttime, endtime;
 	double duration;
 	string timeFileName;
 	stringstream ss;
@@ -77,59 +79,55 @@ int main(int argc, char *argv[]) {
 	switch (step) {
 		case 0:
 		{
-			imageManipulator.openImage(input_file.c_str());
-
-
+			bitmap_image image(input_file);
+			imageManipulator.openImage(image);
+			
 			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
 				imageManipulator.getHeight());
 
 			sectionHeight = imageManipulator.getHeight() / worldSize;
-
+			
 			ImageManipulator littleIm(imageManipulator);
+			
 			littleIm.setHeight((DWORD) sectionHeight);
 			littleIm.convertToGrayscale(0,
 				rank * sectionHeight, littleIm.getWidth(),
-				((rank + 1) * sectionHeight), rv, step);
-
-			if (rv) {
-				cout << "Conversion to basic grayscale failed for " << rank << "th processor" << endl;
-				MPI_Finalize();
-				return -1;
-			}
-
+				((rank + 1) * sectionHeight), step);
 
 			MPI_Allgather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
-				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
+			sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
 				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, MPI_COMM_WORLD);
 
 			if (rank == 0) {
 				grayscaleFileName = input_file;
 				grayscaleFileName.insert(input_file.size() - 4, "_basic_grayscale");
-				imageManipulator.saveImage(grayscaleFileName.c_str(), true);
+				imageManipulator.saveImage(grayscaleFileName, image);
 			}
 			break;
 		}
 		case 1:
 		{
 			//1 means that the algorithm will only apply the first step:convertToLab
-			imageManipulator.openImage(input_file.c_str());
-
+			bitmap_image image(input_file);
+			imageManipulator.openImage(image);
+			
 			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
 				imageManipulator.getHeight());
 
 			sectionHeight = imageManipulator.getHeight() / worldSize;
 			ImageManipulator littleIm(imageManipulator);
 			littleIm.setHeight((DWORD) sectionHeight);
-
+			
 			MPI_Barrier(MPI_COMM_WORLD);
-			start = clock();
+			starttime = MPI_Wtime();
 			littleIm.convertToGrayscale(0,
 				rank * sectionHeight, littleIm.getWidth(),
-				((rank + 1) * sectionHeight), rv, step);
+				((rank + 1) * sectionHeight), step);
 			MPI_Barrier(MPI_COMM_WORLD);
-			end = clock();
+			endtime   = MPI_Wtime();
+
 			if (rank == 0) {
-				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				duration = endtime - starttime;
 				ss << "logs/convertToLab";
 				ss << worldSize;
 				timeFileName = ss.str();
@@ -148,8 +146,9 @@ int main(int argc, char *argv[]) {
 		case 2:
 		{
 			//1 means that the algorithm will only apply the second step
-			imageManipulator.openImage(input_file.c_str());
-
+			bitmap_image image(input_file);
+			imageManipulator.openImage(image);
+			
 			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
 				imageManipulator.getHeight());
 
@@ -157,16 +156,16 @@ int main(int argc, char *argv[]) {
 			ImageManipulator littleIm(imageManipulator);
 			littleIm.setHeight((DWORD) sectionHeight);
 			littleIm.readLabData();
-
+			
 			MPI_Barrier(MPI_COMM_WORLD);
-			start = clock();
+			starttime = MPI_Wtime();
 			littleIm.convertToGrayscale(0,
 				rank * sectionHeight, littleIm.getWidth(),
-				((rank + 1) * sectionHeight), rv, step);
+				((rank + 1) * sectionHeight), step);
 			MPI_Barrier(MPI_COMM_WORLD);
-			end = clock();
+			endtime   = MPI_Wtime();
 			if (rank == 0) {
-				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				duration = endtime - starttime;
 				ss << "logs/computeTargetDiff";
 				ss << worldSize;
 				timeFileName = ss.str();
@@ -181,7 +180,9 @@ int main(int argc, char *argv[]) {
 		{
 			//resolve optimization
 			//1 means that the algorithm will only apply the second step
-			imageManipulator.openImage(input_file.c_str());
+			bitmap_image image(input_file);
+			imageManipulator.openImage(image);
+			
 
 			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
 				imageManipulator.getHeight());
@@ -194,14 +195,14 @@ int main(int argc, char *argv[]) {
 			littleIm.readDeltasData();
 
 			MPI_Barrier(MPI_COMM_WORLD);
-			start = clock();
+			starttime = MPI_Wtime();
 			littleIm.convertToGrayscale(0,
 				rank * sectionHeight, littleIm.getWidth(),
-				((rank + 1) * sectionHeight), rv, step);
+				((rank + 1) * sectionHeight), step);
 			MPI_Barrier(MPI_COMM_WORLD);
-			end = clock();
+			endtime   = MPI_Wtime();
 			if (rank == 0) {
-				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				duration = endtime - starttime;
 				ss << "logs/computeOptimization";
 				ss << worldSize;
 				timeFileName = ss.str();
@@ -214,9 +215,10 @@ int main(int argc, char *argv[]) {
 		}
 		case 4:
 		{
-			//covnert back to RGB
-			imageManipulator.openImage(input_file.c_str());
-
+			//convert back to RGB
+			bitmap_image image(input_file);
+			imageManipulator.openImage(image);
+			
 			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
 				imageManipulator.getHeight());
 
@@ -226,20 +228,20 @@ int main(int argc, char *argv[]) {
 			littleIm.readOptimizedData();
 			
 			MPI_Barrier(MPI_COMM_WORLD);
-			start = clock();
+			starttime = MPI_Wtime();
+
 			littleIm.convertToGrayscale(0,
 				rank * sectionHeight, littleIm.getWidth(),
-				((rank + 1) * sectionHeight), rv, step);
+				((rank + 1) * sectionHeight), step);
 			MPI_Barrier(MPI_COMM_WORLD);
-			end = clock();
-			
-			
+			endtime   = MPI_Wtime();
+
 			MPI_Gather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
 				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
 				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
 
 			if (rank == 0) {
-				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				duration = endtime - starttime;
 				ss << "logs/convertToRgb";
 				ss << worldSize;
 				timeFileName = ss.str();
@@ -249,13 +251,15 @@ int main(int argc, char *argv[]) {
 
 				grayscaleFileName = input_file;
 				grayscaleFileName.insert(input_file.size() - 4, "_gooch_grayscale");
-				imageManipulator.saveImage(grayscaleFileName.c_str(), true);
+				imageManipulator.saveImage(grayscaleFileName, image);
 			}
 			break;
 
 		}
 		default:
-			imageManipulator.openImage(input_file.c_str());
+			bitmap_image image(input_file);
+			imageManipulator.openImage(image);
+			
 
 			printf("Image width: %d \nImage Height: %d\n", imageManipulator.getWidth(),
 				imageManipulator.getHeight());
@@ -263,22 +267,22 @@ int main(int argc, char *argv[]) {
 			sectionHeight = imageManipulator.getHeight() / worldSize;
 			ImageManipulator littleIm(imageManipulator);
 			littleIm.setHeight((DWORD) sectionHeight);
-			
+
 			MPI_Barrier(MPI_COMM_WORLD);
-			start = clock();
+			starttime = MPI_Wtime();
+
 			littleIm.convertToGrayscale(0,
 				rank * sectionHeight, littleIm.getWidth(),
-				((rank + 1) * sectionHeight), rv, step);
+				((rank + 1) * sectionHeight), step);
 			MPI_Barrier(MPI_COMM_WORLD);
-			end = clock();
-			
+			endtime = MPI_Wtime();
 			
 			MPI_Gather(littleIm.greyImageData + sectionHeight * rank * littleIm.getWidth()*3,
 				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, imageManipulator.greyImageData,
 				sectionHeight * littleIm.getWidth()*3, MPI_CHAR, 0, MPI_COMM_WORLD);
 
 			if (rank == 0) {
-				duration = (double) (end - start) / CLOCKS_PER_SEC;
+				duration = endtime - starttime;
 				ss << "logs/allGOOCH";
 				ss << worldSize;
 				timeFileName = ss.str();
@@ -288,7 +292,7 @@ int main(int argc, char *argv[]) {
 
 				grayscaleFileName = input_file;
 				grayscaleFileName.insert(input_file.size() - 4, "_all_gooch_grayscale");
-				imageManipulator.saveImage(grayscaleFileName.c_str(), true);
+				imageManipulator.saveImage(grayscaleFileName, image);
 			}
 			break;
 

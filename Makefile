@@ -6,12 +6,12 @@ CFLAGS=-I$(IDIR)
 ODIR=obj
 LDIR=lib
 
-LIBS=-L/usr/lib/mpich2/lib
+LIBS=
 
-_DEPS = Definitions.h ImageManipulator.h Color_Space_Conversions.h
+_DEPS = Definitions.h ImageManipulator.h Color_Space_Conversions.h bitmap_image.hpp
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o ImageManipulator.o 
+_OBJ = main.o ImageManipulator.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SRC)/%.cpp $(DEPS)
